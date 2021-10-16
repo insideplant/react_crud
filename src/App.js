@@ -11,7 +11,10 @@ export default function App() {
       return [];
     } 
   });
+
   const [todo,setTodo] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentTodo, setCurrentTodo] = useState({});
   
   useEffect(()=>{
     localStorage.setItem("todos", JSON.stringify(todos));
@@ -19,6 +22,10 @@ export default function App() {
 
   const handleInputChange = e => {
     setTodo(e.target.value);
+  }
+  const handleEditInputChange = (e) => {
+    setCurrentTodo({...currentTodo, text: e.target.value});
+    console.log(currentTodo);
   }
   
   const handleFormSubmit = e => {
@@ -36,6 +43,11 @@ export default function App() {
     setTodo("");
   }
 
+  const handleEditFormSubmit = (e) => {
+    e.preventDefault();
+    handleUpdateTodo(currentTodo.id, currentTodo);
+  }
+
   const handleDeleteClick = (id) => {
     const removeItem = todos.filter((todo) => {
       return todo.id !== id;
@@ -43,9 +55,42 @@ export default function App() {
     setTodos(removeItem);
   }
 
+  const handleUpdateTodo = (id, updatedTodo) =>{
+    const updateItem = todos.map((todo) => {
+      return todo.id ===id? updatedTodo : todo;
+    });
+    setIsEditing(false);
+    console.log(updateItem)
+    setTodos(updateItem);
+    
+  }
+
+
+  const handleEditClick = (todo) => {
+    setIsEditing(true);
+    setCurrentTodo({...todo});
+  }
+
   return (
     <div className="App">
+      {isEditing ? (
+      <form onSubmit={handleEditFormSubmit}>
+        <h2>Edit Todo</h2>
+        <label htmlFor="editTodo">edit todo: </label>
+        <input
+          name="editTodo"
+          type="text"
+          placeholder="Edit todo"
+          value={currentTodo.text}
+          onChange={handleEditInputChange}
+        />
+        <button type="submit">Update</button>
+        <button onClick={() => setIsEditing(false)}>Cancel</button>
+      </form>
+      ) : (
       <form onSubmit={handleFormSubmit}>
+        <h2>Add Todo</h2>
+        <label htmlFor="todo">Add todo: </label>
         <input
           name="todo"
           type="text"
@@ -53,12 +98,17 @@ export default function App() {
           value={todo}
           onChange={handleInputChange}
         />
+        <button type="submit">Add</button>
       </form>
+      )}
 
       <ul className="todo-list">
         {todos.map((todo)=>(
           <li key={todo.id}>
-            {todo.text}<button onClick={() => handleDeleteClick(todo.id)}>X</button></li>
+            {todo.text}
+            <button onClick={() => handleEditClick(todo)}>Edit</button>
+            <button onClick={() => handleDeleteClick(todo.id)}>Delete</button>
+          </li>
         ))}
       </ul>
       <h1>Todo App</h1>
